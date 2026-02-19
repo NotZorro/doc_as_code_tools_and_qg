@@ -1,0 +1,10 @@
+id: nfr_v1
+kind: section
+input: section_text
+schema: schema.json
+prompts:
+  system: prompt.system.tmpl
+  user: prompt.user.tmpl
+output:
+  max_retries: 2
+  anti_cjk_repair: true

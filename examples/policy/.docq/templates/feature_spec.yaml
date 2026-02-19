@@ -1,0 +1,39 @@
+id: feature_spec_v1
+doc_type: feature
+
+meta:
+  required: [id, title, doc_type, owner, status, last_reviewed]
+  optional: [tags, related, reviewers, valid_until]
+
+sections:
+  - key: business_context
+    titles:
+      - "Контекст бизнес-задачи"
+      - "Бизнес-контекст"
+      - "Business context"
+      - "Контекст"
+    required: true
+    order: 20
+    rules:
+      min_chars: 200
+    validators: [business_context_v1]
+
+  - key: requirements
+    titles:
+      - "Требования"
+      - "Requirements"
+    required: true
+    order: 30
+    rules:
+      min_chars: 200
+
+  - key: nfr
+    titles:
+      - "Нефункциональные требования"
+      - "NFR"
+      - "Non-functional requirements"
+    required: false
+    order: 40
+    rules:
+      min_chars: 120
+    validators: [nfr_v1]
