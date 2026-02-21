@@ -38,6 +38,8 @@ def analyze_file(
     validators: ValidatorRegistry,
     cfg: EngineConfig,
     enable_llm: bool,
+    docs_pack_json: str = "[]",
+    docs_pack_text: str = "",
 ) -> dict[str, Any]:
     raw_md = read_text(path)
     meta, body = split_frontmatter(raw_md)
@@ -148,6 +150,8 @@ def analyze_file(
                             doc_meta_json=meta_json,
                             doc_type=sel.doc_type,
                             template_id=sel.template_id,
+                            docs_pack_json=docs_pack_json,
+                            docs_pack_text=docs_pack_text,
                         )
                         llm_results.setdefault(key, {})[vid] = asdict(res)
 
@@ -179,6 +183,8 @@ def analyze_section(
     cfg: EngineConfig,
     enable_llm: bool,
     validator_override: str | None = None,
+    docs_pack_json: str = "[]",
+    docs_pack_text: str = "",
 ) -> dict[str, Any]:
     """Analyze a single section of a single markdown file.
 
@@ -284,6 +290,8 @@ def analyze_section(
                         doc_meta_json=meta_json,
                         doc_type=sel.doc_type,
                         template_id=sel.template_id,
+                        docs_pack_json=docs_pack_json,
+                        docs_pack_text=docs_pack_text,
                     )
                     llm_out[vid] = asdict(res)
             finally:
@@ -334,11 +342,42 @@ def run(
     validators = load_validators(validators_dir)
     cfg = load_config(config_path)
 
+    # Build a compact "docs pack" context for validators/tools: all files in the current run.
+    # We keep it small enough to be usable inside LLM prompts.
+    llm_cfg = resolve_llm_settings(cfg.llm)
+    per_doc_chars = max(500, min(8000, llm_cfg.max_doc_chars // max(1, len(paths))))
+
+    docs_pack: list[dict[str, Any]] = []
+    for p in paths:
+        raw = read_text(p)
+        m, b = split_frontmatter(raw)
+        docs_pack.append({"path": str(p), "meta": m, "text": (b or "")[:per_doc_chars]})
+
+    docs_pack_json = json.dumps(docs_pack, ensure_ascii=False, default=json_default)
+    # human-readable concatenation variant (optional to use in prompts)
+    docs_pack_text = "\n\n".join(
+        [
+            f"# FILE: {d['path']}\n# META: {json.dumps(d.get('meta') or {}, ensure_ascii=False, default=json_default)}\n{d.get('text') or ''}"
+            for d in docs_pack
+        ]
+    )
+    docs_pack_text = docs_pack_text[: llm_cfg.max_doc_chars]
+
     ensure_dir(out_dir)
 
     reports = []
     for p in paths:
-        reports.append(analyze_file(path=p, templates=templates, validators=validators, cfg=cfg, enable_llm=enable_llm))
+        reports.append(
+            analyze_file(
+                path=p,
+                templates=templates,
+                validators=validators,
+                cfg=cfg,
+                enable_llm=enable_llm,
+                docs_pack_json=docs_pack_json,
+                docs_pack_text=docs_pack_text,
+            )
+        )
 
     summary_items = []
     for r in reports:

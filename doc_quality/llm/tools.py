@@ -4,54 +4,53 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from ..config import EngineConfig, render_prompt, resolve_llm_settings
-from ..util import env
-from ..validators import ValidatorSpec
+from jsonschema import validate as jsonschema_validate
+
+from ..config import EngineConfig, render_prompt
+from ..tools import ToolSpec
 from .client import OpenAICompatClient
 from .json_mode import llm_json
 
 
 @dataclass
-class LLMRunResult:
-    validator: str
+class ToolRunResult:
+    tool: str
     result: dict[str, Any] | None
     error: str | None
     raw_head: str | None
 
 
-def make_llm_client(cfg: EngineConfig) -> tuple[OpenAICompatClient | None, str | None, str | None]:
-    """Returns (client, model, error). api_key only from env LLMOPS_API_KEY."""
-    api_key = env("LLMOPS_API_KEY")
-    if not api_key:
-        return None, None, "LLMOPS_API_KEY is not set (LLM is disabled)."
-
-    llm_cfg = resolve_llm_settings(cfg.llm)
-    client = OpenAICompatClient(base_url=llm_cfg.base_url, api_key=api_key, timeout_s=llm_cfg.timeout_s)
-    return client, llm_cfg.model, None
-
-
-def run_validator(
+def run_tool(
     *,
     cfg: EngineConfig,
     client: OpenAICompatClient,
     model: str,
-    spec: ValidatorSpec,
-    section_text: str,
-    doc_text: str,
+    spec: ToolSpec,
+    tool_input: dict[str, Any] | None,
+    section_text: str = "",
+    doc_text: str = "",
     section_title: str = "",
     doc_meta_json: str = "{}",
     doc_type: str = "",
     template_id: str = "",
     docs_pack_json: str = "[]",
     docs_pack_text: str = "",
-) -> LLMRunResult:
-    """Run a policy-defined validator. CORE does not know validator internals."""
+) -> ToolRunResult:
+    """Run a policy-defined tool. CORE does not know tool internals."""
+
+    tool_input = tool_input or {}
+    if spec.input_schema is not None:
+        # throws jsonschema.ValidationError (handled by CLI)
+        jsonschema_validate(instance=tool_input, schema=spec.input_schema)
 
     block = {"system": spec.system_prompt, "user": spec.user_prompt}
-    schema_str = json.dumps(spec.schema, ensure_ascii=False)
+    out_schema_str = json.dumps(spec.output_schema, ensure_ascii=False)
+    in_json_str = json.dumps(tool_input, ensure_ascii=False)
+
     messages = render_prompt(
         block,
-        schema=schema_str,
+        schema=out_schema_str,
+        tool_input=in_json_str,
         section_text=section_text,
         doc_text=doc_text,
         section_title=section_title,
@@ -66,10 +65,10 @@ def run_validator(
         client=client,
         model=model,
         messages=messages,
-        schema=spec.schema,
+        schema=spec.output_schema,
         temperature=cfg.llm.temperature,
         max_tokens=cfg.llm.max_tokens,
         retries=spec.max_retries,
     )
 
-    return LLMRunResult(spec.id, obj, err, (raw or "")[:900])
+    return ToolRunResult(spec.id, obj, err, (raw or "")[:900])

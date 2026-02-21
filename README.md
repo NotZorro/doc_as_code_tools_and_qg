@@ -6,6 +6,7 @@
 - **Policy** = в репо с документацией, ветка `qg`, папка `.docq/`:
   - `.docq/templates/*.yaml` (шаблоны документов)
   - `.docq/validators/*` (LLM-валидаторы: schema + prompts как файлы)
+  - `.docq/tools/*` (LLM-tools для аналитиков: input/output schemas + prompts)
   - `.docq/config.yml` (LLM-настройки)
 
 Идея простая: аналитики правят **policy**, CI гоняет **engine**. Магии, кроме обычной человеческой, нет.
@@ -82,6 +83,13 @@ docker run --rm -v "$PWD:/work" -w /work doc-quality:dev \
       prompt.user.tmpl
     nfr_v1/
       ...
+  tools/
+    some_tool_v1/
+      tool.yaml
+      input.schema.json        # optional
+      output.schema.json
+      prompt.system.tmpl
+      prompt.user.tmpl
 ```
 
 Пути можно переопределить флагами `--templates-dir`, `--validators-dir`, `--config`.
@@ -145,6 +153,37 @@ doc-quality run --paths docs --out-dir reports
 
 ---
 
+## LLM tools (для аналитиков)
+
+В отличие от `validators` (которые возвращают JSON-оценку/замечания), **tools** используются для любых LLM-автоматизаций:
+генераторы, помощники, проверки связности между документами и т.д.
+
+Список доступных tools:
+
+```bash
+doc-quality tools --tools-dir .docq/tools
+```
+
+Запуск tool:
+
+```bash
+doc-quality tool --tool some_tool_v1 \
+  --file docs/Feature-0001.md \
+  --section business_context \
+  --paths-file changed_files.txt \
+  --pretty
+```
+
+Tool получает в шаблоны промптов переменные:
+
+- `${tool_input}` (JSON строка)
+- `${section_title}`, `${section_text}`
+- `${doc_text}`, `${doc_meta}`
+- `${docs_pack_json}` (JSON список документов из текущего запуска)
+- `${docs_pack}` (читабельная склейка тех же документов)
+
+---
+
 ## Быстрая проверка одного раздела (для аналитиков)
 
 Когда правите документ и хотите сразу получить подсказки по конкретному разделу:
@@ -158,6 +197,13 @@ doc-quality section --file docs/Feature-0001.md --section business_context --pre
 
 ```bash
 doc-quality section --file docs/Feature-0001.md --section business_context --validator business_context_v1 --pretty
+```
+
+Если LLM-валидатору нужен контекст других документов (например, из MR), можно подать их через docs-pack:
+
+```bash
+doc-quality section --file docs/Feature-0001.md --section business_context \
+  --context-paths-file changed_files.txt --pretty
 ```
 
 ---
