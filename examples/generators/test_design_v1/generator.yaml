@@ -1,0 +1,12 @@
+id: test_design_v1
+kind: document
+input: doc_text
+schema: schema.json
+prompts:
+  system: prompt.system.tmpl
+  user: prompt.user.tmpl
+# Можно переопределить модель ТОЛЬКО для этого генератора:
+# llm:
+#   model: gpt-4.1-mini
+#   temperature: 0.1
+#   max_tokens: 2200

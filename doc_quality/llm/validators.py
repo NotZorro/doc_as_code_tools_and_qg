@@ -19,14 +19,30 @@ class LLMRunResult:
     raw_head: str | None
 
 
-def make_llm_client(cfg: EngineConfig) -> tuple[OpenAICompatClient | None, str | None, str | None]:
-    """Returns (client, model, error). api_key only from env LLMOPS_API_KEY."""
+def make_llm_client(
+    cfg: EngineConfig,
+    *,
+    override_base_url: str | None = None,
+    override_timeout_s: float | None = None,
+) -> tuple[OpenAICompatClient | None, str | None, str | None]:
+    """Returns (client, base_model, error).
+
+    API key only from env LLMOPS_API_KEY.
+
+    Overrides are useful for generators or special checks that want a different
+    gateway/timeout. Env overrides still have the highest priority.
+    """
+
     api_key = env("LLMOPS_API_KEY")
     if not api_key:
         return None, None, "LLMOPS_API_KEY is not set (LLM is disabled)."
 
     llm_cfg = resolve_llm_settings(cfg.llm)
-    client = OpenAICompatClient(base_url=llm_cfg.base_url, api_key=api_key, timeout_s=llm_cfg.timeout_s)
+
+    base_url = env("LLMOPS_BASE_URL") or (override_base_url or llm_cfg.base_url)
+    timeout_s = float(override_timeout_s) if override_timeout_s is not None else llm_cfg.timeout_s
+
+    client = OpenAICompatClient(base_url=base_url, api_key=api_key, timeout_s=timeout_s)
     return client, llm_cfg.model, None
 
 
@@ -45,6 +61,19 @@ def run_validator(
 ) -> LLMRunResult:
     """Run a policy-defined validator. CORE does not know validator internals."""
 
+    # Per-validator overrides. Env still has the highest priority.
+    eff_model = env("LLM_MODEL") or spec.llm.model or model
+    if cfg.llm.allowed_models and eff_model not in cfg.llm.allowed_models:
+        return LLMRunResult(
+            spec.id,
+            None,
+            f"Model '{eff_model}' is not allowed by policy (allowed_models).",
+            None,
+        )
+
+    temperature = spec.llm.temperature if spec.llm.temperature is not None else cfg.llm.temperature
+    max_tokens = spec.llm.max_tokens if spec.llm.max_tokens is not None else cfg.llm.max_tokens
+
     block = {"system": spec.system_prompt, "user": spec.user_prompt}
     schema_str = json.dumps(spec.schema, ensure_ascii=False)
     messages = render_prompt(
@@ -60,11 +89,11 @@ def run_validator(
 
     obj, raw, err = llm_json(
         client=client,
-        model=model,
+        model=eff_model,
         messages=messages,
         schema=spec.schema,
-        temperature=cfg.llm.temperature,
-        max_tokens=cfg.llm.max_tokens,
+        temperature=temperature,
+        max_tokens=max_tokens,
         retries=spec.max_retries,
     )
 

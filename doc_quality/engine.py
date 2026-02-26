@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,9 @@ from .markdown import split_frontmatter, build_sections, norm_heading
 from .policy import load_templates, auto_detect_doc_type
 from .rules import check_meta, apply_section_rules, check_order, issue
 from .util import ensure_dir, json_default, read_text
+from .renderers import get_renderer
+from .renderers.base import RenderContext
+
 
 from .validators import load_validators, ValidatorRegistry
 from .llm.validators import make_llm_client, run_validator
@@ -316,8 +320,30 @@ def write_report(out_dir: Path, file_path: Path, report: dict[str, Any], root: P
     out_path = out_dir / rel
     out_path = out_path.with_suffix(out_path.suffix + ".report.json")
     ensure_dir(out_path.parent)
-    out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2, default=json_default), encoding="utf-8")
-    return out_path
+    out_path.write_text(get_renderer("json").render(report, RenderContext(source_path=str(file_path))), encoding="utf-8")
+    return o
+def _slug_report_name(fp: Path, root: Path) -> str:
+    try:
+        rel = fp.relative_to(root).as_posix()
+    except Exception:
+        rel = fp.as_posix()
+    if rel.lower().endswith(".md"):
+        rel = rel[:-3]
+    rel = rel.strip("/")
+    rel = re.sub(r"\s+", "_", rel)
+    rel = re.sub(r"[^A-Za-z0-9._/-]+", "_", rel)
+    rel = rel.replace("/", "__")
+    return rel[:160] if len(rel) > 160 else rel
+
+
+def write_report_flat(out_dir: Path, fp: Path, report: dict[str, Any], root: Path, *, prefix: str = "qg") -> Path:
+    """Write a report as a single file into out_dir, without mirroring folders."""
+    ensure_dir(out_dir)
+    slug = _slug_report_name(fp, root)
+    out = out_dir / f"{prefix}.{slug}.report.json"
+    out.write_text(get_renderer("json").render(report, RenderContext()), encoding="utf-8")
+    return out
+
 
 
 def run(
@@ -357,13 +383,21 @@ def run(
         "warnings": sum(x["warnings"] for x in summary_items),
     }
 
-    # write reports mirroring folder structure relative to cwd
     root = Path.cwd()
-    for r in reports:
-        fp = Path(r["file"])
-        write_report(out_dir, fp, r, root)
+    if layout == "mirror":
+        # write reports mirroring folder structure relative to cwd
+        for r in reports:
+            fp = Path(r["file"])
+            write_report(out_dir, fp, r, root)
+        summary_path = out_dir / "summary.json"
+    else:
+        # flat layout: keep everything in one folder
+        for r in reports:
+            fp = Path(r["file"])
+            write_report_flat(out_dir, fp, r, root, prefix="qg")
+        summary_path = out_dir / "qg.summary.json"
 
-    (out_dir / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    summary_path.write_text(get_renderer("json").render(summary, RenderContext()), encoding="utf-8")
 
     exit_code = 0
     if summary["blockers"] > 0:
