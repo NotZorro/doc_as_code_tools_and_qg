@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "task": {"type": ["string", "null"]}
+      },
+      "required": ["id", "title"]
+    },
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "in": {"type": "array", "items": {"type": "string"}},
+        "out": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["in", "out"]
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "type": {"type": "string", "enum": ["happy", "negative", "edge", "integration"]},
+          "priority": {"type": "string", "enum": ["p0", "p1", "p2"]},
+          "preconditions": {"type": "array", "items": {"type": "string"}},
+          "steps": {"type": "array", "items": {"type": "string"}},
+          "expected": {"type": "array", "items": {"type": "string"}},
+          "mocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "system": {"type": "string"},
+                "behavior": {"type": "string"}
+              },
+              "required": ["system", "behavior"]
+            }
+          },
+          "trace": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "source": {"type": "string"},
+                "ref": {"type": "string"}
+              },
+              "required": ["source", "ref"]
+            }
+          }
+        },
+        "required": ["id", "title", "type", "priority", "preconditions", "steps", "expected"]
+      }
+    },
+    "open_questions": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["feature", "assumptions", "scope", "scenarios", "open_questions"]
+}

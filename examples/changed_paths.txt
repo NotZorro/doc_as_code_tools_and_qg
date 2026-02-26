@@ -1,0 +1,6 @@
+examples/docs/adr/ADR-EOFFR-0002-segment-bounds-config-v1.md
+examples/docs/algorithms/installment-residual-at-month-12.md
+examples/docs/api/installment-availability-batch-only.md
+examples/docs/features/installment-availability-check.md
+examples/docs/playbooks/eoffr-installment-eligibility-service.md
+examples/docs/services/eoffr-installment-eligibility-service.md

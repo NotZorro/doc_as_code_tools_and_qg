@@ -1,0 +1,10 @@
+id: test_design_algorithm_v1
+kind: document
+input: doc_text
+schema: schema.json
+prompts:
+  system: prompt.system.tmpl
+  user: prompt.user.tmpl
+llm:
+  timeout_s: 300
+  max_tokens: 2400

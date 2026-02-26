@@ -94,16 +94,7 @@ def build_sections(md: str) -> tuple[list[Heading], dict[str, list[dict[str, Any
     for idx, h in enumerate(headings):
         title_n = norm_heading(h.title)
         start = h.end_line if h.end_line is not None else ((h.start_line + 1) if h.start_line is not None else 0)
-        # IMPORTANT: section extent is until the next heading of the SAME or HIGHER level.
-        # Example: for H2 we include all nested H3/H4/... content until next H2 (or H1).
-        next_start = len(lines)
-        for j in range(idx + 1, len(headings)):
-            hj = headings[j]
-            if hj.start_line is None:
-                continue
-            if hj.level <= h.level:
-                next_start = hj.start_line
-                break
+        next_start = headings[idx + 1].start_line if idx + 1 < len(headings) and headings[idx + 1].start_line is not None else len(lines)
         text = "\n".join(lines[start:next_start]).strip()
         sections.setdefault(title_n, []).append(
             {"title": h.title, "start_line": h.start_line, "text": text}

@@ -1,0 +1,28 @@
+
+Краткая выжимка фичи (используй как общий контекст для всех кейсов):
+${feature_summary}
+
+Схема JSON:
+${schema}
+
+Опции генерации (JSON):
+${options}
+
+Feature документ (markdown body, без frontmatter):
+${doc_text}
+
+Метаданные feature (JSON):
+${doc_meta}
+
+Контекстный bundle (JSON):
+${bundle}
+
+Сгенерируй test_suite:
+- feature.id и feature.title бери из метаданных (если нет, то разумно заполни).
+- assumptions: только то, что прямо следует из текста или явно нужно для тестирования.
+- scope.in / scope.out: коротко.
+- scenarios: 6-12 штук. Минимум 3 happy/integration, остальное negative/edge по опциям.
+- Для каждого сценария: preconditions, steps, expected.
+- Если нужен мок внешней системы, добавь mocks [{system, behavior}].
+- trace: привяжи к источнику (например "feature") и краткому ref (например "раздел Требования").
+- open_questions: что нужно уточнить у аналитика/архитектора.

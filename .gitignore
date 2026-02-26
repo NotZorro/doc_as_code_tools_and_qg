@@ -14,4 +14,3 @@ dist/
 reports/
 .egg-info/
 .egg
-*.egg-info/

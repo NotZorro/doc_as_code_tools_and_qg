@@ -1,0 +1,24 @@
+id: algorithm_spec_v1
+doc_type: algorithm
+meta:
+  required:
+  - id
+  - title
+  - doc_type
+  - owner
+  - task
+  - status
+  - last_reviewed
+  optional:
+  - creation_date
+  - feature_id
+  - tags
+  - related
+sections:
+- key: main
+  titles:
+  - Входные данные
+  required: false
+  order: 10
+  rules:
+    min_chars: 30

@@ -1,0 +1,7 @@
+id: test_design_api_v1
+kind: document
+input: doc_text
+schema: schema.json
+prompts:
+  system: prompt.system.tmpl
+  user: prompt.user.tmpl

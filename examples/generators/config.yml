@@ -1,0 +1,8 @@
+# Минимальная политика для capability "test-design" (v2: анти-возврат-схемы).
+llm:
+  enabled: true
+  base_url: https://api.openai.com/v1
+  model: gpt-4o-mini
+  timeout_s: 300
+  temperature: 0.0
+  max_tokens: 3000

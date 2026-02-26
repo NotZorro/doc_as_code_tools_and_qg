@@ -1,0 +1,20 @@
+doc_meta (JSON): 
+${doc_meta}
+
+Текст (часть) документа для этой группы:
+${doc_text}
+
+options (JSON):
+${options}
+
+bundle (JSON): может быть пустым {}:
+${bundle}
+
+Сформируй test-suite:
+- feature: {id,title,task?} (можно взять из doc_meta.feature)
+- group: doc_meta.group
+- source_docs: doc_meta.part.docs (или список документов группы)
+- scenarios: 6..options.max_scenarios (если контента достаточно)
+- id: делай уникальными и стабильными, лучше с префиксом по группе (например TC-API-001)
+- steps/expected: пошагово, проверяемо
+- include_negative/include_edge/include_nfr учитывай

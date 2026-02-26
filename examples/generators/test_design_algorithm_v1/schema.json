@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "feature",
+    "scenarios"
+  ],
+  "properties": {
+    "feature": {
+      "type": "object",
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "task": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "in": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "out": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "steps",
+          "expected"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "happy|negative|edge|nfr|integration|other"
+          },
+          "priority": {
+            "type": "string",
+            "description": "p0|p1|p2|p3"
+          },
+          "preconditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expected": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "system",
+                "behavior"
+              ],
+              "properties": {
+                "system": {
+                  "type": "string"
+                },
+                "behavior": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "trace": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "source",
+                "ref"
+              ],
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "description": "feature|api|algorithm|service|adr|other"
+                },
+                "ref": {
+                  "type": "string",
+                  "description": "section heading, link, requirement id, etc."
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "not": {
+        "required": [
+          "properties",
+          "required"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": true
+}

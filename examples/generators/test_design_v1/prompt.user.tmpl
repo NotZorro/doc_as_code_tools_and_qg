@@ -1,0 +1,33 @@
+Метаданные документа (frontmatter) в JSON:
+${doc_meta}
+
+Тело feature-документа:
+${doc_text}
+
+Опции генерации (JSON):
+${options}
+
+Связанный bundle контекста (JSON). Может быть пустым {}:
+${bundle}
+
+Краткая выжимка фичи (используй как общий контекст для всех кейсов):
+${feature_summary}
+
+
+Требования к результату:
+- Верни JSON test-suite (не схему), содержащий:
+  - feature: {id, title, task?}
+  - scenarios: список тест-кейсов
+  - assumptions, scope(in/out), open_questions (если нужно)
+- scenarios: 8–20 (если контента достаточно)
+- id кейса: "TC-001", "TC-002", ...
+- type: happy|negative|edge|nfr|integration
+- priority: p0|p1|p2|p3
+- steps: пошагово
+- expected: проверяемые ожидания
+- если есть интеграции: добавь mocks[] (что мокать и какое поведение)
+- trace[]: 1–2 ссылки на источник (заголовок секции/ссылка/ключевая фраза)
+
+Учитывай options.include_negative / include_edge / include_nfr:
+- true → обязателен набор соответствующих сценариев
+- false → достаточно базового покрытия

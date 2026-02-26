@@ -1,0 +1,149 @@
+id: feature_template_v1
+doc_type: feature
+
+meta:
+  required: [owner, date_creation, task, feature_rewiever_1]
+  optional: [solution]
+
+sections:
+  - key: tldr
+    titles: ["TLDR", "TL;DR", "Кратко"]
+    required: true
+    order: 10
+    rules:
+      min_chars: 30
+      forbid_regex:
+        - "(?i)tbd|todo|заполнить|placeholder"
+
+  - key: business_context
+    titles: ["Контекст бизнес-задачи", "Контекст бизнес задачи", "Бизнес-контекст", "Business context"]
+    required: true
+    order: 20
+    rules:
+      min_chars: 20
+      forbid_regex:
+        - "(?i)описание проблемы|указанием границ|основных участников"
+    validators: [business_context_v1]
+
+  # Важно: из-за вложенных заголовков (###) контент "Проблема" и "Цели/решения"
+  # в парсере становится отдельными секциями. Поэтому проверяем их отдельно rules-based.
+  - key: business_problem
+    titles: ["Проблема"]
+    required: true
+    order: 21
+    rules:
+      min_chars: 80
+      forbid_regex:
+        - "(?i)чем вызвана доработка"
+
+  - key: business_goals
+    titles: ["Цели/решения", "Цели", "Решения"]
+    required: true
+    order: 22
+    rules:
+      min_chars: 80
+      forbid_regex:
+        - "(?i)чего мы достигнем|какие изменения произойдут"
+
+  - key: use_cases
+    titles: ["Сценарии использования", "Use cases", "Юзкейсы"]
+    required: true
+    order: 30
+    rules:
+      min_chars: 150
+      forbid_regex:
+        - "(?i)описание основных сценариев использования"
+
+  - key: requirements
+    titles: ["Описание требований", "Требования", "Requirements"]
+    required: true
+    order: 40
+    rules:
+      min_chars: 20
+      forbid_regex:
+        - "(?i)описание требований"
+
+  - key: functional_requirements
+    titles: ["Общие функциональные требования", "Функциональные требования"]
+    required: true
+    order: 41
+    rules:
+      min_chars: 150
+
+  - key: nfr
+    titles: ["Нефункциональные требования", "NFR", "Non-functional requirements"]
+    required: true
+    order: 42
+    rules:
+      # допускаем "Не выявлены." без предупреждений
+      min_chars: 10
+      forbid_regex:
+        - "(?i)требования к основным архитектурным характеристикам"
+
+  - key: constraints
+    titles: ["Ограничения", "Constraints"]
+    required: true
+    order: 43
+    rules:
+      min_chars: 30
+      forbid_regex:
+        - "(?i)список ограничений"
+
+  - key: solution
+    titles: ["Описание решения", "Solution", "Решение"]
+    required: true
+    order: 50
+    rules:
+      min_chars: 20
+
+  - key: context_diagram
+    titles: ["Контекстная диаграмма", "Context diagram"]
+    required: true
+    order: 51
+    rules:
+      min_chars: 10
+
+  - key: component_diagram
+    titles: ["Компонентная диаграмма", "Component diagram"]
+    required: true
+    order: 52
+    rules:
+      min_chars: 10
+
+  - key: adr_list
+    titles: ["Список ADR", "ADR", "ADRs"]
+    required: true
+    order: 53
+    rules:
+      min_chars: 10
+
+  - key: work_list
+    titles: ["Список работ", "Работы"]
+    required: true
+    order: 54
+    rules:
+      min_chars: 10
+
+  - key: contracts
+    titles: ["Контракты"]
+    required: false
+    order: 55
+    rules:
+      min_chars: 10
+
+  - key: algorithm
+    titles: ["Описание алгоритма решения", "Алгоритм"]
+    required: false
+    order: 56
+    rules:
+      min_chars: 10
+
+  - key: rationale
+    titles:
+      - 'Правила/приоритеты/примеры "почему так"'
+      - "Почему так"
+      - "Rationale"
+    required: false
+    order: 57
+    rules:
+      min_chars: 10
